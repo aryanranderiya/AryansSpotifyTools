@@ -1,11 +1,13 @@
 import tkinter as tk
 from tkinter import messagebox
+from tkinter import ttk
 import requests
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyOAuth
 import base64
 from PIL import ImageTk, Image, ImageDraw
 from io import BytesIO
+import cachetools
 
 
 class SpotifyToolsApp:
@@ -19,17 +21,33 @@ class SpotifyToolsApp:
 
         self.playlist_uris = {}
 
+        self.song_cache = cachetools.LRUCache(maxsize=10000)
+
         self.login_screen()
         self.frame_view_playlist = tk.Frame(self.window, width=500, height=300)
         self.frame_view_playlist.grid_rowconfigure(0, weight=1)
         self.frame_view_playlist.grid_columnconfigure(0, weight=1)
         self.frame_view_playlist.pack_propagate(False)
         self.selected_playlist_label = tk.Label(self.frame_view_playlist)
+
+        self.frame_view_all_playlists = tk.Frame(self.window, width=500, height=300)
+
+        self.playlist_listbox = tk.Listbox(self.frame_view_all_playlists)
+
         self.back_view_playlist_button = tk.Button(
             self.frame_view_playlist,
             text="Back",
             command=lambda: self.go_back_view_playlists(),
         )
+
+        self.back_home = tk.Button(
+            self.frame_view_all_playlists,
+            text="Home",
+            command=lambda: self.go_back_home(),
+        )
+        self.progress_dialog = None
+
+    # initialisation method ends here ^^^^^
 
     def login_screen(self):
         self.frame_login = tk.Frame(self.window, width=500, height=300)
@@ -113,6 +131,7 @@ class SpotifyToolsApp:
         return base64.b64encode(credentials.encode()).decode()
 
     def home_screen(self):
+        self.window.title("Home")
         self.frame_home = tk.Frame(self.window, width=500, height=300)
         self.frame_home.grid_rowconfigure(0, weight=1)
         self.frame_home.grid_columnconfigure(0, weight=1)
@@ -160,7 +179,7 @@ class SpotifyToolsApp:
             self.frame_home, text=name, font=("Helvetica", 25), foreground="#000"
         ).grid(row=1, column=1, pady=(50), padx=(10, 10))
 
-        button_playlist = tk.Button(
+        self.button_playlist = tk.Button(
             self.frame_home,
             text="View Playlists",
             command=self.view_playlists,
@@ -178,17 +197,15 @@ class SpotifyToolsApp:
             return selected_playlist_uri
 
     def view_playlists(self):
+        self.window.title("View Playlists")
         self.frame_home.pack_forget()
-        self.frame_view_all_playlists = tk.Frame(self.window, width=500, height=300)
         self.frame_view_all_playlists.pack(expand=True)
 
         self.playlists = self.sp.current_user_playlists()
 
-        self.playlist_listbox = tk.Listbox(self.frame_view_all_playlists)
-
-        for playlist in self.playlists['items']:
-            self.playlist_name = playlist['name']
-            self.playlist_uri = playlist['uri']
+        for playlist in self.playlists["items"]:
+            self.playlist_name = playlist["name"]
+            self.playlist_uri = playlist["uri"]
             self.playlist_uris[self.playlist_name] = self.playlist_uri
 
         for playlist_name in self.playlist_uris.keys():
@@ -197,10 +214,13 @@ class SpotifyToolsApp:
         self.playlist_listbox.pack(
             side="top", fill="both", expand=True, padx=20, pady=20
         )
+
         self.playlist_listbox.bind("<ButtonRelease-1>", self.on_item_selected)
 
-    def on_item_selected(self, event):
+        self.back_view_playlist_button.pack()
+        self.back_home.pack()
 
+    def on_item_selected(self, event):
         self.frame_view_all_playlists.pack_forget()
 
         selected_index = self.playlist_listbox.curselection()
@@ -211,26 +231,74 @@ class SpotifyToolsApp:
             self.frame_view_playlist.pack(fill=tk.BOTH, expand=True)
 
             playlist_uri = self.fetch_playlist_uri()
-
-            playlist_tracks = self.sp.playlist_tracks(playlist_uri)
-            number_of_tracks = len(playlist_tracks['items'])
-
-            self.selected_playlist_label.config(text=f"Number of songs in {selected_item}: {number_of_tracks}")
-            self.selected_playlist_label.pack()
+            number_of_tracks = self.fetch_all_songs(playlist_uri)
 
             self.back_view_playlist_button.pack()
 
+            self.selected_playlist_label.config(
+                text=f"Number of songs in {selected_item}: {number_of_tracks}"
+            )
+            self.selected_playlist_label.pack()
 
-        print(f"Number of songs in the playlist: {number_of_tracks}")
+
+        print(f"Number of songs in {selected_item}: {number_of_tracks}")
+
+    def fetch_all_songs(self,playlist_uri):
+
+        if playlist_uri in self.song_cache:
+            return len(self.song_cache[playlist_uri])
+
+        all_tracks = []
+
+        playlist_tracks = self.sp.playlist_tracks(playlist_uri)
+        self.display_progress_dialog()
+        self.progress_dialog.update_idletasks()
+
+        while playlist_tracks:
+            all_tracks.extend(playlist_tracks['items'])
+
+            next_page = playlist_tracks['next']
+            if not next_page:
+                self.close_progress_dialog()
+                break
+
+            playlist_tracks = self.sp.next(playlist_tracks)
+
+            loaded_tracks = len(all_tracks)
+            self.songs_loaded_label.config(text=f"Loading Songs... {loaded_tracks}")
+            self.progress_dialog.update_idletasks()
+
+        self.song_cache[playlist_uri] = all_tracks
+        return len(all_tracks)
+
+    def display_progress_dialog(self):
+        self.progress_dialog = tk.Toplevel(self.window)
+        self.progress_dialog.title("Loading Songs...")
+        self.progress_dialog.geometry("300x100")
+
+        self.progress_bar = ttk.Progressbar(self.progress_dialog, orient=tk.HORIZONTAL, length=220, mode="indeterminate")
+        self.progress_bar.pack(pady=20)
+
+        self.songs_loaded_label = tk.Label(self.progress_dialog, text="Loading Songs... 0")
+        self.songs_loaded_label.pack()
+
+        self.progress_bar.start()
+
+    def close_progress_dialog(self):
+        if self.progress_dialog:
+            self.progress_dialog.destroy()
 
     def go_back_view_playlists(self):
         self.frame_view_playlist.pack_forget()
         self.view_playlists()
 
+    def go_back_home(self):
+        self.frame_view_all_playlists.pack_forget()
+        self.home_screen()
 
 def main():
     window = tk.Tk()
-    appobj = SpotifyToolsApp(window)
+    SpotifyToolsApp(window)
     window.mainloop()
 
 
