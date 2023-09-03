@@ -425,14 +425,10 @@ class SpotifyToolsApp:
         self.home_screen()
 
 def main():
-    print(print_app_name)
     global window
     window = tk.Tk()
     SpotifyToolsApp(window)
     window.mainloop()
-
-def print_app_name():
-    return "Welcome to AryanSpotifyTools!"
 
 if __name__ == "__main__":
     try:
