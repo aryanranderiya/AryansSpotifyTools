@@ -188,7 +188,6 @@ class SpotifyToolsApp:
         self.frame_home.grid_columnconfigure(0, weight=1)
         self.frame_home.pack_propagate(False)
         self.frame_home.pack(fill=tk.BOTH, expand=True)
-        # self.button_back_home.pack_forget()
         logout_icon = Image.open("logout_icon.png")
         resized_logout_icon = logout_icon.resize((35, 35))
         self.logout_icon = ImageTk.PhotoImage(resized_logout_icon)
