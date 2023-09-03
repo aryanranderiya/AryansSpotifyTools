@@ -262,8 +262,6 @@ class SpotifyToolsApp:
             playlist_uri = playlist["uri"]
             self.playlist_uris[playlist_name] = playlist_uri
 
-        # self.listbox_playlists.delete(0, tk.END)
-
         for playlist_name in self.playlist_uris.keys():
             self.listbox_playlists.insert(tk.END, playlist_name)
             close_progress_dialog()
