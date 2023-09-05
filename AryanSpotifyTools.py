@@ -11,6 +11,7 @@ from io import BytesIO
 import cachetools
 import random
 import threading
+import json
 
 def revoke_access_token(access_token, client_id, client_secret):
     if access_token:
@@ -124,7 +125,7 @@ class SpotifyToolsApp:
             client_id=self.CLIENT_ID,
             client_secret=self.CLIENT_SECRET,
             redirect_uri=self.REDIRECT_URI,
-            scope="playlist-modify-private playlist-modify-public",
+            scope="playlist-modify-private playlist-modify-public user-read-recently-played streaming app-remote-control user-read-playback-state user-modify-playback-state user-top-read",
             open_browser="true",
             show_dialog="true",
         )
@@ -178,7 +179,8 @@ class SpotifyToolsApp:
         self.frame_home.pack_forget()
         self.frame_music_player.pack_propagate(False)
         self.frame_music_player.pack(anchor='n')
-        ...
+
+        # print(self.sp.current_playback())
 
     def display_user_profile(self, name, image_url):
         response = requests.get(image_url)
