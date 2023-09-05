@@ -11,7 +11,7 @@ from io import BytesIO
 import cachetools
 import random
 import threading
-import json
+import time
 
 def revoke_access_token(access_token, client_id, client_secret):
     if access_token:
@@ -60,8 +60,9 @@ class SpotifyToolsApp:
         self.frame_view_all_playlists = tk.Frame(self.window, width=700, height=500, background=self.colour_background)
         self.frame_view_playlist_songs = tk.Frame(self.window, width=700, height=500,  background=self.colour_background)
         self.frame_user_profile = tk.Frame(self.frame_home, width=700, height=150, background=self.colour_background)
-        self.frame_home_buttons=tk.Frame(self.window, width=700, height=300, background=self.colour_background)
+        self.frame_home_buttons=tk.Frame(self.window, width=300, height=100, background=self.colour_background)
         self.frame_music_player = tk.Frame(self.window, width=500, height=500, background=self.colour_background)
+        self.frame_music_player_buttons = tk.Frame(self.frame_music_player, width=500, height=50, background=self.colour_background)
 
         self.progress_dialog = None
         self.progress_bar = None
@@ -74,6 +75,11 @@ class SpotifyToolsApp:
         self.label_user_profile_image = tk.Label(self.frame_home, background=self.colour_background)
         self.label_user_profile_name = tk.Label(self.frame_home, background=self.colour_background, foreground="white")
         self.label_image_logo = tk.Label(self.frame_login, background=self.colour_background)
+
+        self.player_label_song_name = tk.Label(self.frame_music_player, background=self.colour_background, foreground="white",text="")
+        self.player_label_album_name = tk.Label(self.frame_music_player, background=self.colour_background, foreground="white",text="")
+        self.player_label_artist_name = tk.Label(self.frame_music_player, background=self.colour_background, foreground="white",text="")
+        self.player_label_song_image = tk.Label(self.frame_music_player, background=self.colour_background,text="")
 
         self.listbox_playlists = tk.Listbox(self.frame_view_all_playlists, background="#282828", foreground="white",highlightthickness=0,font=("Helvetica", 13))
         self.scrollbar_playlists = tk.Scrollbar(self.window, command=self.listbox_playlists.yview)
@@ -94,6 +100,11 @@ class SpotifyToolsApp:
         self.button_back_view_playlist = tk.Button(self.frame_view_playlist_songs, text="Back to Playlist", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
         self.button_shuffle_playlist = tk.Button(self.frame_view_playlist, text="Shuffle Playlist", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
         self.button_view_songs = tk.Button(self.frame_view_playlist,text="View Songs", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
+
+
+        self.button_play = tk.Button(self.frame_music_player_buttons, text="▶️", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","15","bold"))
+        self.button_next = tk.Button(self.frame_music_player_buttons, text="⏭️", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","15","bold"))
+        self.button_prev = tk.Button(self.frame_music_player_buttons, text="⏮️", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","15","bold"))
 
         self.login_screen()
 
@@ -176,11 +187,46 @@ class SpotifyToolsApp:
         self.display_user_profile(name, imageurl)
 
     def music_player(self):
-        self.frame_home.pack_forget()
         self.frame_music_player.pack_propagate(False)
         self.frame_music_player.pack(anchor='n')
+        self.frame_home.pack_forget()
+        self.frame_home_buttons.pack_forget()
 
-        # print(self.sp.current_playback())
+        response = requests.get(self.sp.current_playback()['item']['album']['images'][0]['url'])
+        original_image = Image.open(BytesIO(response.content))
+        resized_image = original_image.resize((300, 300))
+        album_image = ImageTk.PhotoImage(resized_image)
+
+        self.player_label_song_image.config(image=album_image)
+        self.player_label_song_name.config(text=self.sp.current_playback()['item']['name'], font=("Helvetica",20,"bold"))
+        self.player_label_album_name.config(text=self.sp.current_playback()['item']['album']['name'], font=("Helvetica",10,"bold"))
+        self.player_label_artist_name.config(text=self.sp.current_playback()['item']['artists'][0]['name'], font=("Helvetica",13,"bold"))
+
+        self.player_label_song_image.pack(anchor='n',padx=20,pady=20)
+        self.player_label_song_name.pack(anchor='n')
+        self.player_label_album_name.pack(anchor='n')
+        self.player_label_artist_name.pack(anchor='n')
+
+        self.frame_music_player_buttons.pack()
+        self.frame_music_player_buttons.grid_columnconfigure(index=3,weight=1)
+        self.frame_music_player_buttons.grid_rowconfigure(index=1,weight=1)
+        self.button_prev.grid(column=0,row=0,padx=15,pady=15)
+        self.button_play.grid(column=1,row=0,padx=15,pady=15)
+        self.button_next.grid(column=2,row=0,padx=15,pady=15)
+
+        time(1)
+        self.window.update()
+        self.window.update_idletasks()
+
+        # Album Name: self.sp.current_playback()['item']['album']['name'])
+        # Album Image: self.sp.current_playback()['item']['album']['images'][0]['url']
+
+        # Artist Name: self.sp.current_playback()['item']['artists'][0]['name']
+        # Artist Link: self.sp.current_playback()['item']['artists'][0]['external_urls']['spotify']
+
+        # Track Name: self.sp.current_playback()['item']['name']
+        # Track Link: self.sp.current_playback()["item"]['external_urls']['spotify']
+
 
     def display_user_profile(self, name, image_url):
         response = requests.get(image_url)
