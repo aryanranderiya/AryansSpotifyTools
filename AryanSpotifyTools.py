@@ -176,6 +176,7 @@ class SpotifyToolsApp:
 
     def music_player(self):
         self.frame_home.pack_forget()
+        self.frame_music_player.pack_propagate(False)
         self.frame_music_player.pack(anchor='n')
         ...
 
