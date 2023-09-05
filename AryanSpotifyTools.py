@@ -1,16 +1,16 @@
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
-import requests
-from spotipy import Spotify, SpotifyException
+from spotipy import Spotify, SpotifyException,SpotifyClientCredentials
 from spotipy.oauth2 import SpotifyOAuth
+from spotipy_random import get_random
+import requests
 import base64
 from PIL import ImageTk, Image, ImageDraw
 from io import BytesIO
 import cachetools
 import random
 import threading
-import time
 
 def revoke_access_token(access_token, client_id, client_secret):
     if access_token:
@@ -43,6 +43,10 @@ class SpotifyToolsApp:
         self.CLIENT_SECRET = "8fe689bda9e64b3d8b4e111301cf6a44"
         self.REDIRECT_URI = "http://localhost:8888/callback"
 
+        spotify_client = Spotify(auth_manager=SpotifyClientCredentials(
+                                 client_id=self.CLIENT_ID,
+                                 client_secret=self.CLIENT_SECRET))
+        
         self.playlists = {}
         self.playlist_uris = {}
         self.text_num_song = ""
@@ -56,6 +60,7 @@ class SpotifyToolsApp:
         self.frame_view_playlist_songs = tk.Frame(self.window, width=700, height=500,  background=self.colour_background)
         self.frame_user_profile = tk.Frame(self.frame_home, width=700, height=150, background=self.colour_background)
         self.frame_home_buttons=tk.Frame(self.window, width=700, height=300, background=self.colour_background)
+        self.frame_music_player = tk.Frame(self.window, width=500, height=500, background=self.colour_background)
 
         self.progress_dialog = None
         self.progress_bar = None
@@ -80,6 +85,9 @@ class SpotifyToolsApp:
         self.button_login = tk.Button(self.frame_login, text="Login to Spotify",background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
         self.button_logout = tk.Button(self.frame_home,relief="flat", background=self.colour_background)
         self.button_view_playlists = tk.Button(self.frame_home_buttons, text="View Playlists", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
+        # generate song button
+        # self.button_view_playlists = tk.Button(self.frame_home_buttons, text="View Playlists", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
+        self.button_music_player = tk.Button(self.frame_home_buttons, text="Spotify Mini-Player", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
         self.button_back_home = tk.Button(self.frame_view_all_playlists, text="Home", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
         self.button_back_view_playlists = tk.Button(self.frame_view_playlist, text="Back", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
         self.button_back_view_playlist = tk.Button(self.frame_view_playlist_songs, text="Back to Playlist", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
@@ -160,9 +168,16 @@ class SpotifyToolsApp:
         self.frame_user_profile.pack(anchor='n')
         self.frame_home_buttons.pack(anchor='n')
         self.button_view_playlists.pack(anchor='n',padx=15,pady=15) 
+        self.button_music_player.config(command=self.music_player)
+        self.button_music_player.pack(anchor='n',padx=15,pady=15) 
 
         name, imageurl = self.fetch_user_details()
         self.display_user_profile(name, imageurl)
+
+    def music_player(self):
+        self.frame_home.pack_forget()
+        self.frame_music_player.pack(anchor='n')
+        ...
 
     def display_user_profile(self, name, image_url):
         response = requests.get(image_url)
