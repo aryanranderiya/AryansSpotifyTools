@@ -307,6 +307,9 @@ class SpotifyToolsApp:
         self.window.after(0, self.display_playlist_information, self.playlist_uri, playlist_name, all_fetched_tracks)
 
     def method_playlist_image(self):
+
+        self.label_playlist_image.config(image=None)
+
         self.playlist_image_url = (
             self.playlist["images"][0]["url"] if self.playlist["images"] else None
         )
@@ -384,7 +387,6 @@ class SpotifyToolsApp:
         self.frame_view_playlist.pack()
 
     def shuffle_playlist_songs(self):
-
         batch_size = 100
         batches = [self.track_uris[i:i + batch_size] for i in range(0, len(self.track_uris), batch_size)]
 
@@ -396,14 +398,15 @@ class SpotifyToolsApp:
                 random.shuffle(batch)
                 self.sp.playlist_add_items(self.playlist_uri, batch)
 
-            print("Playlist shuffled successfully.")
+            self.playlist = self.sp.playlist(self.playlist_uri)
 
+            print("Playlist shuffled successfully.")
+        
         except SpotifyException as e:
             print(f"Error updating playlist: {str(e)}")
 
-        print(f"Playlist Image URL: {self.playlist_image_url}")
-        time.sleep(2)
         self.method_playlist_image()
+
         print(f"Playlist Image URL: {self.playlist_image_url}")
 
 
