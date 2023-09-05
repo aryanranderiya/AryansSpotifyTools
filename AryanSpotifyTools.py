@@ -189,8 +189,6 @@ class SpotifyToolsApp:
 
     def music_player(self):
 
-        self.device_id =  self.sp.current_playback()['device']['id']
-
         self.frame_music_player.pack_propagate(False)
         self.frame_music_player.pack(anchor='n')
         self.frame_home.pack_forget()
@@ -215,17 +213,19 @@ class SpotifyToolsApp:
         self.frame_music_player_buttons.grid_columnconfigure(index=3,weight=1)
         self.frame_music_player_buttons.grid_rowconfigure(index=1,weight=1)
 
-        self.button_play.configure(command=lambda:self.sp.start_playback(self.device_id))
-        self.button_prev.configure(command=lambda:self.sp.previous_track(self.device_id))
-        self.button_next.configure(command=lambda:self.sp.next_track(self.device_id))
+        self.button_play.configure(command=self.play_pause_track)
+        self.button_prev.configure(command=self.previous_track)
+        self.button_next.configure(command=self.next_track)
 
         self.button_prev.grid(column=0,row=0,padx=15,pady=15)
         self.button_play.grid(column=1,row=0,padx=15,pady=15)
         self.button_next.grid(column=2,row=0,padx=15,pady=15)
 
-        time(1)
-        self.window.update()
-        self.window.update_idletasks()
+        time(10)
+        # self.frame_music_player.update()
+        # self.frame_music_player.update_idletasks()
+        # self.frame_music_player_buttons.update()
+        # self.frame_music_player_buttons.update_idletasks()
 
         # Album Name: self.sp.current_playback()['item']['album']['name'])
         # Album Image: self.sp.current_playback()['item']['album']['images'][0]['url']
@@ -236,6 +236,34 @@ class SpotifyToolsApp:
         # Track Name: self.sp.current_playback()['item']['name']
         # Track Link: self.sp.current_playback()["item"]['external_urls']['spotify']
 
+    def play_pause_track(self):
+
+        # check if track is playing, if not then pause
+        self.device_id =  self.sp.current_playback()['device']['id']
+
+        if self.sp.current_playback()['is_playing']:
+            self.sp.pause_playback(self.device_id)
+        else:
+            self.sp.start_playback(self.device_id)
+        self.frame_music_player.pack_forget()
+        self.music_player()
+
+        
+    def previous_track(self):
+        self.device_id =  self.sp.current_playback()['device']['id']
+        self.sp.previous_track(self.device_id)
+        self.frame_music_player.update()
+        self.frame_music_player.update_idletasks()
+        self.frame_music_player.pack_forget()
+        self.music_player()
+        
+    def next_track(self):
+        self.device_id =  self.sp.current_playback()['device']['id']
+        self.sp.next_track(self.device_id)
+        self.frame_music_player.update()
+        self.frame_music_player.update_idletasks()
+        self.frame_music_player.pack_forget()
+        self.music_player()
 
     def display_user_profile(self, name, image_url):
         response = requests.get(image_url)
