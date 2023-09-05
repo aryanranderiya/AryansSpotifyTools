@@ -45,41 +45,45 @@ class SpotifyToolsApp:
 
 
         self.window.geometry("700x500")
-        self.frame_login = tk.Frame(self.window, width=700, height=500)
-        self.frame_home = tk.Frame(self.window, width=700, height=500)
-        self.frame_view_playlist = tk.Frame(self.window, width=700, height=500)
-        self.frame_view_all_playlists = tk.Frame(self.window, width=700, height=500)
-        self.frame_view_playlist_songs = tk.Frame(self.window, width=700, height=500)
-        self.frame_user_profile = tk.Frame(self.frame_home, width=700, height=150)
-        self.frame_home_buttons=tk.Frame(self.window, width=700, height=300)
+        self.frame_login = tk.Frame(self.window, width=700, height=500, background="#121212")
+        self.frame_home = tk.Frame(self.window, width=700, height=500, background="#121212")
+        self.frame_view_playlist = tk.Frame(self.window, width=700, height=500, background="#121212")
+        self.frame_view_all_playlists = tk.Frame(self.window, width=700, height=500, background="#121212")
+        self.frame_view_playlist_songs = tk.Frame(self.window, width=700, height=500,  background="#121212")
+        self.frame_user_profile = tk.Frame(self.frame_home, width=700, height=150, background="#121212")
+        self.frame_home_buttons=tk.Frame(self.window, width=700, height=300, background="#121212")
 
         self.progress_dialog = None
         self.progress_bar = None
 
-        self.label_number_of_songs = tk.Label(self.frame_view_playlist)
-        self.label_playlist_image = tk.Label(self.frame_view_playlist)
-        self.label_playlist_name = tk.Label(self.frame_view_playlist)
-        self.label_welcome_title = tk.Label(self.frame_login)
-        self.label_user_profile_image = tk.Label(self.frame_home)
-        self.label_user_profile_name = tk.Label(self.frame_home)
-        self.label_image_logo = tk.Label(self.frame_login)
+        self.label_number_of_songs = tk.Label(self.frame_view_playlist, background="#121212", foreground="white")
+        self.label_playlist_image = tk.Label(self.frame_view_playlist, background="#121212", foreground="white")
+        self.label_playlist_name = tk.Label(self.frame_view_playlist, background="#121212", foreground="white")
+        self.label_welcome_title = tk.Label(self.frame_login, background="#121212")
+        self.label_user_profile_image = tk.Label(self.frame_home, background="#121212")
+        self.label_user_profile_name = tk.Label(self.frame_home, background="#121212", foreground="white")
+        self.label_image_logo = tk.Label(self.frame_login, background="#121212")
 
-        self.listbox_playlists = tk.Listbox(self.frame_view_all_playlists)
+        self.listbox_playlists = tk.Listbox(self.frame_view_all_playlists, background="#121212", foreground="white")
         self.scrollbar_playlists = tk.Scrollbar(self.window, command=self.listbox_playlists.yview)
         self.listbox_playlists.config(yscrollcommand=self.scrollbar_playlists.set)
 
-        self.listbox_view_songs = tk.Listbox(self.frame_view_playlist_songs)
+        self.listbox_view_songs = tk.Listbox(self.frame_view_playlist_songs, background="#121212", foreground="white")
         self.scrollbar_songs = tk.Scrollbar(self.window, command=self.listbox_view_songs.yview)
         self.listbox_view_songs.config(yscrollcommand=self.scrollbar_songs.set)
 
-        self.button_login = tk.Button(self.frame_login, text="Login to Spotify")
-        self.button_logout = tk.Button(self.frame_home)
-        self.button_view_playlists = tk.Button(self.frame_home_buttons, text="View Playlists")
-        self.button_back_home = tk.Button(self.frame_view_all_playlists, text="Home")
-        self.button_back_view_playlists = tk.Button(self.frame_view_playlist, text="Back")
-        self.button_back_view_playlist = tk.Button(self.frame_view_playlist_songs, text="Back to Playlist")
-        self.button_shuffle_playlist = tk.Button(self.frame_view_playlist, text="Shuffle Playlist")
-        self.button_view_songs = tk.Button(self.frame_view_playlist,text="View Songs")
+
+        self.listbox_playlists.configure({'width': 60, 'height': 10})
+        self.listbox_view_songs.configure({'width': 60, 'height': 10})
+
+        self.button_login = tk.Button(self.frame_login, text="Login to Spotify",background="#1ab26b",foreground="#121212",relief="flat",font=("Helvetica","10","bold"))
+        self.button_logout = tk.Button(self.frame_home,relief="flat")
+        self.button_view_playlists = tk.Button(self.frame_home_buttons, text="View Playlists", background="#1ab26b",foreground="#121212",relief="flat",font=("Helvetica","10","bold"))
+        self.button_back_home = tk.Button(self.frame_view_all_playlists, text="Home", background="#1ab26b",foreground="#121212",relief="flat",font=("Helvetica","10","bold"))
+        self.button_back_view_playlists = tk.Button(self.frame_view_playlist, text="Back", background="#1ab26b",foreground="#121212",relief="flat",font=("Helvetica","10","bold"))
+        self.button_back_view_playlist = tk.Button(self.frame_view_playlist_songs, text="Back to Playlist", background="#1ab26b",foreground="#121212",relief="flat",font=("Helvetica","10","bold"))
+        self.button_shuffle_playlist = tk.Button(self.frame_view_playlist, text="Shuffle Playlist", background="#1ab26b",foreground="#121212",relief="flat",font=("Helvetica","10","bold"))
+        self.button_view_songs = tk.Button(self.frame_view_playlist,text="View Songs", background="#1ab26b",foreground="#121212",relief="flat",font=("Helvetica","10","bold"))
 
         self.login_screen()
 
@@ -152,7 +156,7 @@ class SpotifyToolsApp:
         self.button_logout.grid(row=1, column=3, pady=(50), padx=(10, 30))
 
         self.frame_user_profile.pack_propagate(False)
-        self.frame_user_profile.pack(anchor='n',padx=(100,0),pady=20)
+        self.frame_user_profile.pack(anchor='n')
         self.frame_home_buttons.pack(anchor='n')
         self.button_view_playlists.pack(anchor='n',padx=15,pady=15) 
 
@@ -173,7 +177,7 @@ class SpotifyToolsApp:
         self.user_image = ImageTk.PhotoImage(circular_image)
 
         self.label_user_profile_image.config(image=self.user_image)
-        self.label_user_profile_name.config(text=name, font=("Helvetica", 25), foreground="#000")
+        self.label_user_profile_name.config(text=name, font=("Helvetica", 25))
 
         self.button_view_playlists.config(command=self.view_playlists)
 
@@ -226,7 +230,8 @@ class SpotifyToolsApp:
 
     def view_playlists(self):
         self.window.title("View Playlists")
-        self.frame_home.place_forget()
+        self.frame_home.pack_forget()
+        self.frame_home_buttons.pack_forget()
         self.frame_view_all_playlists.pack(expand=True)
         self.frame_view_all_playlists.pack_propagate(False)
         self.listbox_playlists.pack(
@@ -336,7 +341,7 @@ class SpotifyToolsApp:
 
         self.text_num_songs = "Number of songs: " + str(len(self.track_uris))
         self.label_number_of_songs.config(text=self.text_num_songs)
-        self.label_playlist_name.config(text=self.playlist_name,font=("Helvetica", 30), foreground="#000")
+        self.label_playlist_name.config(text=self.playlist_name,font=("Helvetica", 30))
 
         self.label_playlist_image.pack(anchor="n", pady=(30, 10))
         self.label_playlist_name.pack(anchor="n")
@@ -433,6 +438,8 @@ class SpotifyToolsApp:
 def main():
     global window
     window = tk.Tk()
+    tk.Menu(window, background='blue', fg='white')
+    window.config(background="#121212")
     SpotifyToolsApp(window)
     print("Running SpotifyTools!")
     window.mainloop()
