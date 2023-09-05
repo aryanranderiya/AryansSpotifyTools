@@ -222,10 +222,10 @@ class SpotifyToolsApp:
         self.button_next.grid(column=2,row=0,padx=15,pady=15)
 
         time(10)
-        # self.frame_music_player.update()
-        # self.frame_music_player.update_idletasks()
-        # self.frame_music_player_buttons.update()
-        # self.frame_music_player_buttons.update_idletasks()
+        self.frame_music_player.update()
+        self.frame_music_player.update_idletasks()
+        self.frame_music_player_buttons.update()
+        self.frame_music_player_buttons.update_idletasks()
 
         # Album Name: self.sp.current_playback()['item']['album']['name'])
         # Album Image: self.sp.current_playback()['item']['album']['images'][0]['url']
