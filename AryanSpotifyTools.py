@@ -18,7 +18,7 @@ def revoke_access_token(access_token, client_id, client_secret):
         headers = {
             "Authorization": f"Basic {get_base64_encoded_credentials(client_id, client_secret)}"
         }
-        data = {"token": access_token}
+        data = {"token": access_token} if access_token else {}
         response = requests.post(revocation_url, data=data, headers=headers)
         print(response.status_code)
         return True
@@ -28,53 +28,6 @@ def revoke_access_token(access_token, client_id, client_secret):
 def get_base64_encoded_credentials(client_id, client_secret):
     credentials = f"{client_id}:{client_secret}"
     return base64.b64encode(credentials.encode()).decode()
-
-def fetch_all_songs(playlist_uri, sp, song_cache):
-    if playlist_uri in song_cache:
-        return len(song_cache[playlist_uri])
-
-    all_tracks = []
-
-    playlist_tracks = sp.playlist_tracks(playlist_uri)
-    display_progress_dialog("Loading Songs...")
-    progress_dialog.update_idletasks()
-
-    while playlist_tracks:
-        all_tracks.extend(playlist_tracks["items"])
-
-        next_page = playlist_tracks["next"]
-        if not next_page:
-            close_progress_dialog()
-            break
-
-        playlist_tracks = sp.next(playlist_tracks)
-        number_of_loaded_tracks = len(all_tracks)
-        label_songs_loaded.config(text=f"Loading Songs... {number_of_loaded_tracks}")
-        progress_dialog.update_idletasks()
-
-    song_cache[playlist_uri] = all_tracks
-
-    return all_tracks
-
-def display_progress_dialog(title):
-    global progress_dialog
-    progress_dialog = tk.Toplevel(window)
-    progress_dialog.title(title)
-    progress_dialog.geometry("300x100")
-
-    global label_songs_loaded
-    label_songs_loaded = tk.Label(progress_dialog,text=title + " 0")
-    global progress_bar
-    progress_bar = ttk.Progressbar(progress_dialog,orient=tk.HORIZONTAL, length=220, mode="indeterminate")
-    progress_bar.pack(pady=20)
-    progress_bar.start
-    label_songs_loaded.pack()
-
-def close_progress_dialog():
-    global progress_dialog
-    if progress_dialog:
-        progress_bar.stop
-        progress_dialog.destroy()
 
 class SpotifyToolsApp:
     def __init__(self, window):
@@ -93,11 +46,14 @@ class SpotifyToolsApp:
         self.frame_login = tk.Frame(self.window, width=500, height=400)
         self.frame_home = tk.Frame(self.window, width=500, height=400)
         self.frame_view_playlist = tk.Frame(self.window, width=500, height=400)
-        self.frame_view_all_playlists = tk.Frame(self.window, width=500, height=300)
+        self.frame_view_all_playlists = tk.Frame(self.window, width=500, height=400)
         self.frame_view_playlist_songs = tk.Frame(self.window, width=500, height=400)
 
         self.progress_dialog = None
-
+        self.cancel_loading = False
+        self.fetching_thread = None 
+        self.progress_bar = None
+        
         self.label_number_of_songs = tk.Label(self.frame_view_playlist)
         self.label_playlist_image = tk.Label(self.frame_view_playlist)
         self.label_playlist_name = tk.Label(self.frame_view_playlist)
@@ -198,6 +154,36 @@ class SpotifyToolsApp:
         name, imageurl = self.fetch_user_details()
         self.display_user_profile(name, imageurl)
 
+    def fetch_all_songs(self,playlist_uri, sp, song_cache):
+        if playlist_uri in song_cache:
+            return len(song_cache[playlist_uri])
+
+        all_tracks = []
+
+        playlist_tracks = sp.playlist_tracks(playlist_uri)
+        self.display_progress_dialog("Loading Songs...")
+        self.progress_dialog.update_idletasks()
+
+        while playlist_tracks:
+            all_tracks.extend(playlist_tracks["items"])
+
+            if self.cancel_loading:
+                break 
+
+            next_page = playlist_tracks["next"]
+            if not next_page:
+                self.close_progress_dialog()
+                break
+
+            playlist_tracks = sp.next(playlist_tracks)
+            number_of_loaded_tracks = len(all_tracks)
+            self.label_songs_loaded.config(text=f"Loading Songs... {number_of_loaded_tracks}")
+            self.progress_dialog.update_idletasks()
+
+        song_cache[playlist_uri] = all_tracks
+
+        return all_tracks
+
     def fetch_user_details(self):
         display_name = self.user["display_name"]
         profile_image_url = (
@@ -243,6 +229,7 @@ class SpotifyToolsApp:
         self.window.title("View Playlists")
         self.frame_home.pack_forget()
         self.frame_view_all_playlists.pack(expand=True)
+        self.frame_view_all_playlists.pack_propagate(False)
         self.listbox_playlists.pack(
             side="top", fill="both", expand=True, padx=20, pady=20
         )
@@ -251,9 +238,9 @@ class SpotifyToolsApp:
         self.button_back_home.pack()
 
         if not self.playlists:
-            display_progress_dialog("Loading Playlists...")
-            self.fetch_playlists()
-
+            fetching_thread = threading.Thread(target=self.fetch_playlists)
+            fetching_thread.start()
+            
     def fetch_playlists(self):
         self.playlists = self.sp.current_user_playlists()
 
@@ -264,14 +251,13 @@ class SpotifyToolsApp:
 
         for playlist_name in self.playlist_uris.keys():
             self.listbox_playlists.insert(tk.END, playlist_name)
-            close_progress_dialog()
 
         self.scrollbar_playlists.pack(side="right", fill="y")
         self.scrollbar_songs.pack_forget()
 
         self.listbox_playlists.bind("<ButtonRelease-1>", self.on_item_selected)
 
-        close_progress_dialog()
+        self.close_progress_dialog()
 
     def on_item_selected(self, event):
         self.frame_view_all_playlists.pack_forget()
@@ -282,7 +268,6 @@ class SpotifyToolsApp:
         if selected_index:
             index = selected_index[0]
             playlist_name = self.listbox_playlists.get(index)
-            # self.listbox_playlists.pack_forget()
             self.window.title(f"Playlist: {playlist_name}")
             self.frame_view_playlist.pack(fill=tk.BOTH, expand=True)
             self.frame_view_playlist.pack_propagate(False)
@@ -291,9 +276,8 @@ class SpotifyToolsApp:
 
             self.fetch_and_display_playlist_data(playlist_name)
 
-
     def fetch_and_display_playlist_data(self, playlist_name):
-        all_fetched_tracks = fetch_all_songs(self.playlist_uri, self.sp, self.song_cache)
+        all_fetched_tracks = self.fetch_all_songs(self.playlist_uri, self.sp, self.song_cache)
 
         self.results = self.sp.playlist_tracks(self.playlist_uri)
         self.tracks = self.results["items"]
@@ -304,8 +288,16 @@ class SpotifyToolsApp:
             self.tracks = self.results["items"]
             self.track_uris.extend([self.track["track"]["uri"] for self.track in self.tracks])
 
-        self.window.after(0, self.display_playlist_information, self.playlist_uri, playlist_name, all_fetched_tracks)
+        if not self.cancel_loading:
 
+            self.display_progress_dialog("Loading Playlists...")
+
+            self.playlist_thread = threading.Thread(target=self.display_playlist_information, args=(self.playlist_uri, playlist_name, all_fetched_tracks))
+            self.playlist_thread.start()
+        
+        if self.cancel_loading :
+            self.close_progress_dialog()
+        
     def method_playlist_image(self):
 
         self.label_playlist_image.config(image=None)
@@ -334,12 +326,14 @@ class SpotifyToolsApp:
 
         self.label_playlist_image.config(image=self.playlist_image)
 
-
     def display_playlist_information(self, playlist_uri, playlist_name, num_of_tracks):
+
+        self.close_progress_dialog()
 
         self.playlist = self.sp.playlist(playlist_uri)
 
-        self.method_playlist_image()
+        if not self.cancel_loading:
+            self.method_playlist_image()
 
         self.playlist_name = playlist_name
 
@@ -356,8 +350,9 @@ class SpotifyToolsApp:
         self.label_number_of_songs.pack(anchor="n", pady=(10, 20))
         self.button_shuffle_playlist.pack(anchor="n", pady=(0, 10))
         self.button_view_songs.pack(anchor="n", pady=(0, 10))
-
         self.button_back_view_playlists.pack(anchor="n", pady=(0, 20))
+        
+        self.close_progress_dialog()
 
     def view_songs_in_playlist(self):
         self.frame_view_playlist_songs.pack()
@@ -407,9 +402,6 @@ class SpotifyToolsApp:
 
         self.method_playlist_image()
 
-        print(f"Playlist Image URL: {self.playlist_image_url}")
-
-
     def go_back_view_playlists(self):
         self.frame_view_playlist.pack_forget()
         self.frame_view_all_playlists.pack()
@@ -423,6 +415,45 @@ class SpotifyToolsApp:
     def go_back_home(self):
         self.frame_view_all_playlists.pack_forget()
         self.home_screen()
+
+    def display_progress_dialog(self,title):
+        self.progress_dialog = tk.Toplevel(window)
+        self.progress_dialog.title(title)
+        self.progress_dialog.geometry("300x200")
+
+        self.label_songs_loaded = tk.Label(self.progress_dialog,text=title + " 0")
+        self.progress_bar = ttk.Progressbar(self.progress_dialog,orient=tk.HORIZONTAL, length=220, mode="indeterminate")
+        self.button_cancel_dialog = tk.Button(self.progress_dialog,text="Cancel",command=lambda:self.cancel_and_switch_frame_to_view_playlists())
+
+        self.progress_bar.pack(pady=20)
+        self.progress_bar.start
+        self.label_songs_loaded.pack()        
+        self.button_cancel_dialog.pack(pady=10)
+
+        self.cancel_loading = False
+        self.update_progress_dialog()
+
+    def update_progress_dialog(self):
+        if not self.cancel_loading:
+            self.progress_dialog.update_idletasks()
+            window.after(100, self.update_progress_dialog)
+
+    def cancel_and_switch_frame_to_view_playlists(self):
+
+        if self.playlist_thread:
+            self.cancel_loading = True
+            self.playlist_thread.join()
+
+        self.frame_view_all_playlists.pack()
+        self.frame_view_playlist.pack_forget()
+        self.close_progress_dialog()
+
+    def close_progress_dialog(self):
+        if self.progress_bar:
+            self.cancel_loading = True
+            self.progress_bar.stop
+            if self.progress_dialog:
+                self.progress_dialog.destroy()
 
 def main():
     global window
