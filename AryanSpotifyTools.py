@@ -425,6 +425,7 @@ def main():
     global window
     window = tk.Tk()
     SpotifyToolsApp(window)
+    print("Running SpotifyTools!")
     window.mainloop()
 
 if __name__ == "__main__":
