@@ -151,6 +151,7 @@ class SpotifyToolsApp:
         else:
             messagebox.showerror("Error", "Connection Unsuccessful")
 
+
     def logout(self):
         if self.access_token:
             if revoke_access_token(self.access_token["access_token"], self.CLIENT_ID, self.CLIENT_SECRET):
@@ -187,6 +188,9 @@ class SpotifyToolsApp:
         self.display_user_profile(name, imageurl)
 
     def music_player(self):
+
+        self.device_id =  self.sp.current_playback()['device']['id']
+
         self.frame_music_player.pack_propagate(False)
         self.frame_music_player.pack(anchor='n')
         self.frame_home.pack_forget()
@@ -210,6 +214,11 @@ class SpotifyToolsApp:
         self.frame_music_player_buttons.pack()
         self.frame_music_player_buttons.grid_columnconfigure(index=3,weight=1)
         self.frame_music_player_buttons.grid_rowconfigure(index=1,weight=1)
+
+        self.button_play.configure(command=lambda:self.sp.start_playback(self.device_id))
+        self.button_prev.configure(command=lambda:self.sp.previous_track(self.device_id))
+        self.button_next.configure(command=lambda:self.sp.next_track(self.device_id))
+
         self.button_prev.grid(column=0,row=0,padx=15,pady=15)
         self.button_play.grid(column=1,row=0,padx=15,pady=15)
         self.button_next.grid(column=2,row=0,padx=15,pady=15)
