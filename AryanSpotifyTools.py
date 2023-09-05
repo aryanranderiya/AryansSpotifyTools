@@ -43,17 +43,19 @@ class SpotifyToolsApp:
         self.text_num_song = ""
         self.song_cache = cachetools.LRUCache(maxsize=10000)
 
-        self.frame_login = tk.Frame(self.window, width=500, height=400)
-        self.frame_home = tk.Frame(self.window, width=500, height=400)
-        self.frame_view_playlist = tk.Frame(self.window, width=500, height=400)
-        self.frame_view_all_playlists = tk.Frame(self.window, width=500, height=400)
-        self.frame_view_playlist_songs = tk.Frame(self.window, width=500, height=400)
+
+        self.window.geometry("700x500")
+        self.frame_login = tk.Frame(self.window, width=700, height=500)
+        self.frame_home = tk.Frame(self.window, width=700, height=500)
+        self.frame_view_playlist = tk.Frame(self.window, width=700, height=500)
+        self.frame_view_all_playlists = tk.Frame(self.window, width=700, height=500)
+        self.frame_view_playlist_songs = tk.Frame(self.window, width=700, height=500)
+        self.frame_user_profile = tk.Frame(self.frame_home, width=700, height=150)
+        self.frame_home_buttons=tk.Frame(self.window, width=700, height=300)
 
         self.progress_dialog = None
-        self.cancel_loading = False
-        self.fetching_thread = None 
         self.progress_bar = None
-        
+
         self.label_number_of_songs = tk.Label(self.frame_view_playlist)
         self.label_playlist_image = tk.Label(self.frame_view_playlist)
         self.label_playlist_name = tk.Label(self.frame_view_playlist)
@@ -72,7 +74,7 @@ class SpotifyToolsApp:
 
         self.button_login = tk.Button(self.frame_login, text="Login to Spotify")
         self.button_logout = tk.Button(self.frame_home)
-        self.button_view_playlists = tk.Button(self.frame_home, text="View Playlists")
+        self.button_view_playlists = tk.Button(self.frame_home_buttons, text="View Playlists")
         self.button_back_home = tk.Button(self.frame_view_all_playlists, text="Home")
         self.button_back_view_playlists = tk.Button(self.frame_view_playlist, text="Back")
         self.button_back_view_playlist = tk.Button(self.frame_view_playlist_songs, text="Back to Playlist")
@@ -85,7 +87,7 @@ class SpotifyToolsApp:
 
     def login_screen(self):
         self.frame_login.pack_propagate(False)
-        self.frame_login.pack(fill=tk.BOTH, expand=True)
+        self.frame_login.place(relx=0.5, rely=0.5, anchor=tk.CENTER) 
 
         original_image = Image.open("spotify_logo.png")
         resized_image = original_image.resize((333, 100))
@@ -119,7 +121,7 @@ class SpotifyToolsApp:
 
         if self.access_token and "access_token" in self.access_token:
             print(f"Logged in as: {self.user['display_name']}")
-            self.frame_login.pack_forget()
+            self.frame_login.place_forget()
             self.home_screen()
         else:
             messagebox.showerror("Error", "Connection Unsuccessful")
@@ -129,7 +131,7 @@ class SpotifyToolsApp:
             if revoke_access_token(self.access_token["access_token"], self.CLIENT_ID, self.CLIENT_SECRET):
                 print("Access token revoked successfully.")
                 self.frame_home.pack_forget()
-                self.frame_login.pack()
+                self.frame_login.place(relx=0.5, rely=0.5, anchor=tk.CENTER) 
                 messagebox.showinfo("Success", "Successfully logged out!")
             else:
                 print("Failed to revoke access token.")
@@ -140,19 +142,43 @@ class SpotifyToolsApp:
 
     def home_screen(self):
         self.window.title("Home")
-        self.frame_home.grid_rowconfigure(0, weight=1)
-        self.frame_home.grid_columnconfigure(0, weight=1)
         self.frame_home.pack_propagate(False)
-        self.frame_home.pack(fill=tk.BOTH, expand=True)
+        self.frame_home.pack(anchor='n')
+
         logout_icon = Image.open("logout_icon.png")
         resized_logout_icon = logout_icon.resize((35, 35))
         self.logout_icon = ImageTk.PhotoImage(resized_logout_icon)
-
         self.button_logout.config(image=self.logout_icon, command=self.logout)
         self.button_logout.grid(row=1, column=3, pady=(50), padx=(10, 30))
 
+        self.frame_user_profile.pack_propagate(False)
+        self.frame_user_profile.pack(anchor='n',padx=(100,0),pady=20)
+        self.frame_home_buttons.pack(anchor='n')
+        self.button_view_playlists.pack(anchor='n',padx=15,pady=15) 
+
         name, imageurl = self.fetch_user_details()
         self.display_user_profile(name, imageurl)
+
+    def display_user_profile(self, name, image_url):
+        response = requests.get(image_url)
+        profile_image = Image.open(BytesIO(response.content))
+
+        width, height = profile_image.size
+        mask = Image.new("L", (width, height), 0)
+        draw = ImageDraw.Draw(mask)
+        draw.ellipse((0, 0, width, height), fill=255)
+
+        circular_image = Image.new("RGBA", (width, height))
+        circular_image.paste(profile_image, mask=mask)
+        self.user_image = ImageTk.PhotoImage(circular_image)
+
+        self.label_user_profile_image.config(image=self.user_image)
+        self.label_user_profile_name.config(text=name, font=("Helvetica", 25), foreground="#000")
+
+        self.button_view_playlists.config(command=self.view_playlists)
+
+        self.label_user_profile_name.grid(row=1, column=1, pady=(30), padx=(10, 10))
+        self.label_user_profile_image.grid(row=1, column=0, pady=(30), padx=(30, 10))
 
     def fetch_all_songs(self,playlist_uri, sp, song_cache):
         if playlist_uri in song_cache:
@@ -166,9 +192,6 @@ class SpotifyToolsApp:
 
         while playlist_tracks:
             all_tracks.extend(playlist_tracks["items"])
-
-            if self.cancel_loading:
-                break 
 
             next_page = playlist_tracks["next"]
             if not next_page:
@@ -192,30 +215,6 @@ class SpotifyToolsApp:
 
         return display_name, profile_image_url
 
-    def display_user_profile(self, name, image_url):
-        response = requests.get(image_url)
-        profile_image = Image.open(BytesIO(response.content))
-
-        width, height = profile_image.size
-        mask = Image.new("L", (width, height), 0)
-        draw = ImageDraw.Draw(mask)
-        draw.ellipse((0, 0, width, height), fill=255)
-
-        circular_image = Image.new("RGBA", (width, height))
-        circular_image.paste(profile_image, mask=mask)
-        self.user_image = ImageTk.PhotoImage(circular_image)
-
-        self.label_user_profile_image.config(image=self.user_image)
-        self.label_user_profile_image.grid(row=1, column=0, pady=(50), padx=(30, 10))
-
-        self.label_user_profile_name.config(
-            text=name, font=("Helvetica", 25), foreground="#000"
-        )
-        self.label_user_profile_name.grid(row=1, column=1, pady=(50), padx=(10, 10))
-
-        self.button_view_playlists.config(command=self.view_playlists)
-        self.button_view_playlists.grid(row=2, column=0, pady=(10, 40), padx=30)
-
     def fetch_playlist_uri(self):
         selected_index = self.listbox_playlists.curselection()
 
@@ -227,7 +226,7 @@ class SpotifyToolsApp:
 
     def view_playlists(self):
         self.window.title("View Playlists")
-        self.frame_home.pack_forget()
+        self.frame_home.place_forget()
         self.frame_view_all_playlists.pack(expand=True)
         self.frame_view_all_playlists.pack_propagate(False)
         self.listbox_playlists.pack(
@@ -288,15 +287,10 @@ class SpotifyToolsApp:
             self.tracks = self.results["items"]
             self.track_uris.extend([self.track["track"]["uri"] for self.track in self.tracks])
 
-        if not self.cancel_loading:
+        self.display_progress_dialog("Loading Playlists...")
 
-            self.display_progress_dialog("Loading Playlists...")
-
-            self.playlist_thread = threading.Thread(target=self.display_playlist_information, args=(self.playlist_uri, playlist_name, all_fetched_tracks))
-            self.playlist_thread.start()
-        
-        if self.cancel_loading :
-            self.close_progress_dialog()
+        self.playlist_thread = threading.Thread(target=self.display_playlist_information, args=(self.playlist_uri, playlist_name, all_fetched_tracks))
+        self.playlist_thread.start()
         
     def method_playlist_image(self):
 
@@ -332,8 +326,7 @@ class SpotifyToolsApp:
 
         self.playlist = self.sp.playlist(playlist_uri)
 
-        if not self.cancel_loading:
-            self.method_playlist_image()
+        self.method_playlist_image()
 
         self.playlist_name = playlist_name
 
@@ -351,8 +344,6 @@ class SpotifyToolsApp:
         self.button_shuffle_playlist.pack(anchor="n", pady=(0, 10))
         self.button_view_songs.pack(anchor="n", pady=(0, 10))
         self.button_back_view_playlists.pack(anchor="n", pady=(0, 20))
-        
-        self.close_progress_dialog()
 
     def view_songs_in_playlist(self):
         self.frame_view_playlist_songs.pack()
@@ -419,41 +410,25 @@ class SpotifyToolsApp:
     def display_progress_dialog(self,title):
         self.progress_dialog = tk.Toplevel(window)
         self.progress_dialog.title(title)
-        self.progress_dialog.geometry("300x200")
+        self.progress_dialog.geometry("300x100")
 
         self.label_songs_loaded = tk.Label(self.progress_dialog,text=title + " 0")
         self.progress_bar = ttk.Progressbar(self.progress_dialog,orient=tk.HORIZONTAL, length=220, mode="indeterminate")
-        self.button_cancel_dialog = tk.Button(self.progress_dialog,text="Cancel",command=lambda:self.cancel_and_switch_frame_to_view_playlists())
 
         self.progress_bar.pack(pady=20)
-        self.progress_bar.start
+        self.progress_bar.start()
         self.label_songs_loaded.pack()        
-        self.button_cancel_dialog.pack(pady=10)
 
-        self.cancel_loading = False
         self.update_progress_dialog()
 
     def update_progress_dialog(self):
-        if not self.cancel_loading:
-            self.progress_dialog.update_idletasks()
-            window.after(100, self.update_progress_dialog)
-
-    def cancel_and_switch_frame_to_view_playlists(self):
-
-        if self.playlist_thread:
-            self.cancel_loading = True
-            self.playlist_thread.join()
-
-        self.frame_view_all_playlists.pack()
-        self.frame_view_playlist.pack_forget()
-        self.close_progress_dialog()
+        self.progress_dialog.update_idletasks()
+        window.after(100, self.update_progress_dialog)
 
     def close_progress_dialog(self):
         if self.progress_bar:
-            self.cancel_loading = True
-            self.progress_bar.stop
-            if self.progress_dialog:
-                self.progress_dialog.destroy()
+            self.progress_bar.stop()
+            self.progress_dialog.destroy()
 
 def main():
     global window
