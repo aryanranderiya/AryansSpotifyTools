@@ -165,6 +165,7 @@ class SpotifyToolsApp:
             self.access_token = None
             self.sp = None
 
+
     def home_screen(self):
         self.window.title("Home")
         self.frame_home.pack_propagate(False)
