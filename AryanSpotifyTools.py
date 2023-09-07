@@ -11,7 +11,6 @@ from io import BytesIO
 import cachetools
 import random
 import threading
-import time
 
 def revoke_access_token(access_token, client_id, client_secret):
     if access_token:
@@ -102,7 +101,7 @@ class SpotifyToolsApp:
         self.button_view_songs = tk.Button(self.frame_view_playlist,text="View Songs", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
 
 
-        self.button_play = tk.Button(self.frame_music_player_buttons, text="▶️", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","15","bold"))
+        self.button_play_pause = tk.Button(self.frame_music_player_buttons, text="▶️", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","15","bold"))
         self.button_next = tk.Button(self.frame_music_player_buttons, text="⏭️", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","15","bold"))
         self.button_prev = tk.Button(self.frame_music_player_buttons, text="⏮️", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","15","bold"))
 
@@ -114,7 +113,7 @@ class SpotifyToolsApp:
         self.frame_login.pack_propagate(False)
         self.frame_login.place(relx=0.5, rely=0.5, anchor=tk.CENTER) 
 
-        original_image = Image.open("spotify_logo.png")
+        original_image = Image.open("AryansSpotifyTools\spotify_logo.png")
         resized_image = original_image.resize((333, 100))
         spotify_logo = ImageTk.PhotoImage(resized_image)
 
@@ -140,7 +139,7 @@ class SpotifyToolsApp:
             open_browser="true",
             show_dialog="true",
         )
-        self.access_token = self.sp_oauth.get_access_token()
+        self.access_token = self.sp_oauth.get_cached_token()
         self.sp = Spotify(auth=self.access_token["access_token"])
         self.user = self.sp.current_user()
 
@@ -171,7 +170,7 @@ class SpotifyToolsApp:
         self.frame_home.pack_propagate(False)
         self.frame_home.pack(anchor='n')
 
-        logout_icon = Image.open("logout_icon.png")
+        logout_icon = Image.open("AryansSpotifyTools\logout_icon.png")
         resized_logout_icon = logout_icon.resize((35, 35))
         self.logout_icon = ImageTk.PhotoImage(resized_logout_icon)
         self.button_logout.config(image=self.logout_icon, command=self.logout)
@@ -188,65 +187,103 @@ class SpotifyToolsApp:
         self.display_user_profile(name, imageurl)
 
     def music_player(self):
-
+        self.window.minsize(200,150)
         self.frame_music_player.pack_propagate(False)
         self.frame_music_player.pack(anchor='n')
         self.frame_home.pack_forget()
         self.frame_home_buttons.pack_forget()
 
-        response = requests.get(self.sp.current_playback()['item']['album']['images'][0]['url'])
-        original_image = Image.open(BytesIO(response.content))
-        resized_image = original_image.resize((300, 300))
-        album_image = ImageTk.PhotoImage(resized_image)
+        if self.sp.current_playback() is not None:
+            self.update_playback_info()
 
-        self.player_label_song_image.config(image=album_image)
-        self.player_label_song_name.config(text=self.sp.current_playback()['item']['name'], font=("Helvetica",20,"bold"))
-        self.player_label_album_name.config(text=self.sp.current_playback()['item']['album']['name'], font=("Helvetica",10,"bold"))
-        self.player_label_artist_name.config(text=self.sp.current_playback()['item']['artists'][0]['name'], font=("Helvetica",13,"bold"))
+            self.player_label_song_image.pack(anchor='n',padx=20,pady=20)
+            self.player_label_song_name.pack(anchor='n')
+            self.player_label_album_name.pack(anchor='n')
+            self.player_label_artist_name.pack(anchor='n')
 
-        self.player_label_song_image.pack(anchor='n',padx=20,pady=20)
-        self.player_label_song_name.pack(anchor='n')
-        self.player_label_album_name.pack(anchor='n')
-        self.player_label_artist_name.pack(anchor='n')
+            self.frame_music_player_buttons.pack()
+            self.frame_music_player_buttons.grid_columnconfigure(index=3,weight=1)
+            self.frame_music_player_buttons.grid_rowconfigure(index=1,weight=1)
 
-        self.frame_music_player_buttons.pack()
-        self.frame_music_player_buttons.grid_columnconfigure(index=3,weight=1)
-        self.frame_music_player_buttons.grid_rowconfigure(index=1,weight=1)
+            play_icon = Image.open("AryansSpotifyTools\icon_play.png")
+            r_play_icon = play_icon.resize((35, 35))
+            self.play_icon = ImageTk.PhotoImage(r_play_icon)
 
-        self.button_play.configure(command=self.play_pause_track)
-        self.button_prev.configure(command=self.previous_track)
-        self.button_next.configure(command=self.next_track)
+            pause_icon = Image.open("AryansSpotifyTools\icon_pause.png")
+            r_pause_icon = pause_icon.resize((35, 35))
+            self.pause_icon = ImageTk.PhotoImage(r_pause_icon)
 
-        self.button_prev.grid(column=0,row=0,padx=15,pady=15)
-        self.button_play.grid(column=1,row=0,padx=15,pady=15)
-        self.button_next.grid(column=2,row=0,padx=15,pady=15)
+            next_icon = Image.open("AryansSpotifyTools\icon_next.png")
+            r_next_icon = next_icon.resize((35, 35))
+            self.next_icon = ImageTk.PhotoImage(r_next_icon)
 
-        time(10)
-        self.frame_music_player.update()
-        self.frame_music_player.update_idletasks()
-        self.frame_music_player_buttons.update()
-        self.frame_music_player_buttons.update_idletasks()
+            prev_icon = Image.open("AryansSpotifyTools\icon_previous.png")
+            r_prev_icon = prev_icon.resize((35, 35))
+            self.prev_icon = ImageTk.PhotoImage(r_prev_icon)
+            
+            self.button_play_pause.configure(command=self.play_pause_track, image=self.pause_icon)
+            self.button_prev.configure(command=self.previous_track, image=self.prev_icon)
+            self.button_next.configure(command=self.next_track, image=self.next_icon)
 
-        # Album Name: self.sp.current_playback()['item']['album']['name'])
-        # Album Image: self.sp.current_playback()['item']['album']['images'][0]['url']
+            self.button_prev.grid(column=0,row=0,padx=15,pady=15)
+            self.button_play_pause.grid(column=1,row=0,padx=15,pady=15)
+            self.button_next.grid(column=2,row=0,padx=15,pady=15)
 
-        # Artist Name: self.sp.current_playback()['item']['artists'][0]['name']
-        # Artist Link: self.sp.current_playback()['item']['artists'][0]['external_urls']['spotify']
+        else :
+            print("No current playback information available.")
+            self.player_label_song_name.config(text="No PlayBack Information.")
+            self.player_label_album_name.config(text="")
+            self.player_label_artist_name.config(text="")
 
-        # Track Name: self.sp.current_playback()['item']['name']
-        # Track Link: self.sp.current_playback()["item"]['external_urls']['spotify']
+            self.player_label_song_image.pack(anchor='n',padx=20,pady=20)
+            self.player_label_song_name.pack(anchor='n')
+            self.player_label_album_name.pack(anchor='n')
+            self.player_label_artist_name.pack(anchor='n')
+
+    def update_playback_info(self):
+
+        if self.sp.current_playback():
+            response = requests.get(self.sp.current_playback()['item']['album']['images'][0]['url'])
+            original_image = Image.open(BytesIO(response.content))
+            resized_image = original_image.resize((300, 300))
+            self.album_image = ImageTk.PhotoImage(resized_image)
+
+            self.player_label_song_image.config(image=self.album_image)
+            self.player_label_song_name.config(text=self.sp.current_playback()['item']['name'], font=("Helvetica",20,"bold"))
+            self.player_label_album_name.config(text=self.sp.current_playback()['item']['album']['name'], font=("Helvetica",10,"bold"))
+            self.player_label_artist_name.config(text=self.sp.current_playback()['item']['artists'][0]['name'], font=("Helvetica",13,"bold"))
+
+            self.frame_music_player.update()
+            self.frame_music_player.update_idletasks()
+            self.frame_music_player_buttons.update()
+            self.frame_music_player_buttons.update_idletasks()
+
+            self.frame_music_player.after(1000, self.update_playback_info)
+        else:
+            self.frame_music_player.after(1000, self.update_playback_info)
+        
+
+            # *Album Name: self.sp.current_playback()['item']['album']['name'])
+            # *Album Image: self.sp.current_playback()['item']['album']['images'][0]['url']
+
+            # !Artist Name: self.sp.current_playback()['item']['artists'][0]['name']
+            # !Artist Link: self.sp.current_playback()['item']['artists'][0]['external_urls']['spotify']
+
+            # ?Track Name: self.sp.current_playback()['item']['name']
+            # ?Track Link: self.sp.current_playback()["item"]['external_urls']['spotify']
 
     def play_pause_track(self):
 
-        # check if track is playing, if not then pause
         self.device_id =  self.sp.current_playback()['device']['id']
 
         if self.sp.current_playback()['is_playing']:
             self.sp.pause_playback(self.device_id)
+            self.button_play_pause.configure(image=self.play_icon)
         else:
             self.sp.start_playback(self.device_id)
-        self.frame_music_player.pack_forget()
-        self.music_player()
+            self.button_play_pause.configure(image=self.pause_icon)
+        # self.frame_music_player.pack_forget()
+        # self.music_player()
 
         
     def previous_track(self):
@@ -548,7 +585,7 @@ class SpotifyToolsApp:
 def main():
     global window
     window = tk.Tk()
-    window.iconbitmap("ALogoSpotify.ico")
+    window.iconbitmap("AryansSpotifyTools\ALogoSpotify.ico")
     SpotifyToolsApp(window)
     window.state('zoomed')
     window.mainloop()
