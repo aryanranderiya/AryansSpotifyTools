@@ -33,7 +33,7 @@ class SpotifyToolsApp:
     def __init__(self, window):
 
         self.colour_background="#121212"
-        self.colour_foregroud_green="#1b26b"
+        self.colour_foregroud_green=self.colour_foregroud_green
 
         self.window = window
         self.window.config(background=self.colour_background)
@@ -70,7 +70,7 @@ class SpotifyToolsApp:
         self.label_playlist_image = tk.Label(self.frame_view_playlist, background=self.colour_background, foreground="white")
         self.label_playlist_name = tk.Label(self.frame_view_playlist, background=self.colour_background, foreground="white")
         self.label_welcome_title = tk.Label(self.frame_login, background=self.colour_background)
-        self.label_view_playlist_title = tk.Label(self.frame_view_all_playlists, background=self.colour_background, foreground="#1ab26b")
+        self.label_view_playlist_title = tk.Label(self.frame_view_all_playlists, background=self.colour_background, foreground=self.colour_foregroud_green)
         self.label_user_profile_image = tk.Label(self.frame_home, background=self.colour_background)
         self.label_user_profile_name = tk.Label(self.frame_home, background=self.colour_background, foreground="white")
         self.label_image_logo = tk.Label(self.frame_login, background=self.colour_background)
@@ -88,22 +88,22 @@ class SpotifyToolsApp:
         self.scrollbar_songs = tk.Scrollbar(self.window, command=self.listbox_view_songs.yview)
         self.listbox_view_songs.config(yscrollcommand=self.scrollbar_songs.set)
 
-        self.button_login = tk.Button(self.frame_login, text="Login to Spotify",background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
+        self.button_login = tk.Button(self.frame_login, text="Login to Spotify",background=self.colour_foregroud_green,foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
         self.button_logout = tk.Button(self.frame_home,relief="flat", background=self.colour_background)
-        self.button_view_playlists = tk.Button(self.frame_home_buttons, text="View Playlists", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
+        self.button_view_playlists = tk.Button(self.frame_home_buttons, text="View Playlists", background=self.colour_foregroud_green,foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
         # generate song button
-        # self.button_view_playlists = tk.Button(self.frame_home_buttons, text="View Playlists", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
-        self.button_music_player = tk.Button(self.frame_home_buttons, text="Spotify Mini-Player", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
-        self.button_back_home = tk.Button(self.frame_view_all_playlists, text="Home", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
-        self.button_back_view_playlists = tk.Button(self.frame_view_playlist, text="Back", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
-        self.button_back_view_playlist = tk.Button(self.frame_view_playlist_songs, text="Back to Playlist", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
-        self.button_shuffle_playlist = tk.Button(self.frame_view_playlist, text="Shuffle Playlist", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
-        self.button_view_songs = tk.Button(self.frame_view_playlist,text="View Songs", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
+        # self.button_view_playlists = tk.Button(self.frame_home_buttons, text="View Playlists", background=self.colour_foregroud_green,foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
+        self.button_music_player = tk.Button(self.frame_home_buttons, text="Spotify Mini-Player", background=self.colour_foregroud_green,foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
+        self.button_back_home = tk.Button(self.frame_view_all_playlists, text="Home", background=self.colour_foregroud_green,foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
+        self.button_back_view_playlists = tk.Button(self.frame_view_playlist, text="Back", background=self.colour_foregroud_green,foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
+        self.button_back_view_playlist = tk.Button(self.frame_view_playlist_songs, text="Back to Playlist", background=self.colour_foregroud_green,foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
+        self.button_shuffle_playlist = tk.Button(self.frame_view_playlist, text="Shuffle Playlist", background=self.colour_foregroud_green,foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
+        self.button_view_songs = tk.Button(self.frame_view_playlist,text="View Songs", background=self.colour_foregroud_green,foreground=self.colour_background,relief="flat",font=("Helvetica","10","bold"))
 
 
-        self.button_play_pause = tk.Button(self.frame_music_player_buttons, text="▶️", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","15","bold"))
-        self.button_next = tk.Button(self.frame_music_player_buttons, text="⏭️", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","15","bold"))
-        self.button_prev = tk.Button(self.frame_music_player_buttons, text="⏮️", background="#1ab26b",foreground=self.colour_background,relief="flat",font=("Helvetica","15","bold"))
+        self.button_play_pause = tk.Button(self.frame_music_player_buttons, text="▶️", background=self.colour_foregroud_green,foreground=self.colour_background,relief="flat",font=("Helvetica","15","bold"))
+        self.button_next = tk.Button(self.frame_music_player_buttons, text="⏭️", background=self.colour_foregroud_green,foreground=self.colour_background,relief="flat",font=("Helvetica","15","bold"))
+        self.button_prev = tk.Button(self.frame_music_player_buttons, text="⏮️", background=self.colour_foregroud_green,foreground=self.colour_background,relief="flat",font=("Helvetica","15","bold"))
 
         self.login_screen()
 
@@ -124,7 +124,7 @@ class SpotifyToolsApp:
         self.label_welcome_title.config(
             text="Welcome to Aryan's SpotifyTools!",
             font=("Helvetica", 20, "bold"),
-            foreground="#1ab26b")
+            foreground=self.colour_foregroud_green)
         self.label_welcome_title.grid(row=1, column=0, pady=(10, 20), padx=30)
 
         self.button_login.config(command=self.login_to_spotify)
