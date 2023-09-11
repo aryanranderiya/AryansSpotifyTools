@@ -46,9 +46,9 @@ class SpotifyToolsApp:
         self.CLIENT_SECRET = "8fe689bda9e64b3d8b4e111301cf6a44"
         self.REDIRECT_URI = "http://localhost:8888/callback"
 
-        spotify_client = Spotify(auth_manager=SpotifyClientCredentials(
-                                 client_id=self.CLIENT_ID,
-                                 client_secret=self.CLIENT_SECRET))
+        # spotify_client = Spotify(auth_manager=SpotifyClientCredentials(
+        #                          client_id=self.CLIENT_ID,
+        #                          client_secret=self.CLIENT_SECRET))
 
         self.playlists = {}
         self.playlist_uris = {}
