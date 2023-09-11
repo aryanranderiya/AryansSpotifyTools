@@ -1,3 +1,4 @@
 .tmp.driveupload/
 .vscode/
 .cache
+.gitignore
