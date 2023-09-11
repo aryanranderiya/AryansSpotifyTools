@@ -11,6 +11,7 @@ from io import BytesIO
 import cachetools
 import random
 import threading
+import webbrowser
 
 
 def revoke_access_token(access_token, client_id, client_secret):
@@ -179,6 +180,7 @@ class SpotifyToolsApp:
             open_browser="true",
             show_dialog="true",
         )
+                
         self.access_token = self.sp_oauth.get_cached_token()
         self.sp = Spotify(auth=self.access_token["access_token"])
         self.user = self.sp.current_user()
