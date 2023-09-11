@@ -651,7 +651,7 @@ def main():
     SpotifyToolsApp(window)
     window.state('zoomed')
     window.mainloop()
-    print("Running SpotifyTools!")
+    print("Running SpotifyTools...")
 
 
 if __name__ == "__main__":
