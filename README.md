@@ -33,13 +33,13 @@ Contributions are wholeheartedly welcomed from the community! Please follow thes
 
 1. Fork the repository to your GitHub account.
 2. Clone the forked repository to your local machine.
-   ```git clone https://github.com/your-username/repository.git```
-3. Create a new branch for your feature or bug fix.
-   ```git checkout -b feature/your-feature```
-4. Make your changes and test them thoroughly.
-5. Commit your changes.
-  ```git commit -m "Description of your changes"```
-6. Push to the branch.
-  ```git push origin feature/your-feature```
-7. Open a pull request on GitHub.
+```git clone https://github.com/your-username/repository.git```
+4. Create a new branch for your feature or bug fix.
+```git checkout -b feature/your-feature```
+5. Make your changes and test them thoroughly.
+6. Commit your changes.
+```git commit -m "Description of your changes"```
+7. Push to the branch.
+```git push origin feature/your-feature```
+9. Open a pull request on GitHub.
 
