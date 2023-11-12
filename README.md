@@ -6,7 +6,7 @@ Welcome to Aryan's Spotify Tools, a Python application designed to enhance your 
 
 ## About
 
-Spotify Tools is a project by [Aryan](https://github.com/aryanranderiya) that leverages the Spotify API to provide a set of useful tools for Spotify users. In this pre-release version, I'm excited to introduce you to some of the key features and functionalities.
+Spotify Tools is a Python based PC Application that leverages the Spotify API to provide a set of useful tools for Spotify users. In this pre-release version, I'm excited to introduce you to some of the key features and functionalities.
 
 ## Features
 
@@ -24,3 +24,22 @@ Spotify Tools is a project by [Aryan](https://github.com/aryanranderiya) that le
 - **Edit User Profile**
 - **Spotify Profile Statistics / Metrics**
 - **Higher Security**
+
+## Contributing
+
+Contributions are wholeheartedly welcomed from the community! Please follow these guidelines below to contribute to the project.
+
+### How to Contribute
+
+1. Fork the repository to your GitHub account.
+2. Clone the forked repository to your local machine.
+   ```git clone https://github.com/your-username/repository.git```
+3. Create a new branch for your feature or bug fix.
+   ```git checkout -b feature/your-feature```
+4. Make your changes and test them thoroughly.
+5. Commit your changes.
+  ```git commit -m "Description of your changes"```
+6. Push to the branch.
+  ```git push origin feature/your-feature```
+7. Open a pull request on GitHub.
+
